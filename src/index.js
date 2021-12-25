@@ -1,4 +1,6 @@
 const fastify = require('fastify')()
+const queue = require('fastq')(worker, 6)
+var faker = require('faker');
 
 fastify.register(require('fastify-mongodb'), {
     // force to close the mongodb connection when app stopped
@@ -36,26 +38,58 @@ fastify.post('/users', function (req, reply) {
     })
 })
 
+const getFake = () => {
+    return faker.fake("{{commerce.productName}}-{{datatype.uuid}}");
+}
+
+const getProduct = () => {
+    return {
+        name: faker.unique(getFake),
+        price: faker.commerce.price(),
+        description: faker.commerce.productDescription(),
+        image: faker.image.image,
+        createdAt: faker.date.past(),
+    }
+}
+
 const productsCollection = 'products'
 
-fastify.post(`/${productsCollection}`, function (req, reply) {
+function worker(arg, cb) {
+    // const collection = this.mongo.db.collection(productsCollection)
+    // arg.collection.insertOne(arg.p, (err, result) => {
+    //     cb(null, result)
+    // })    
+    arg.collection.find({}, {}).limit(100).toArray((err, result) => {
+        cb(null, result);
+    })
+}
+
+fastify.post(`/q/${productsCollection}`, function (req, reply) {
+    const p = getProduct();
     const collection = this.mongo.db.collection(productsCollection)
-    collection.insert(req.body, (err, result) => {
-        if (err) {
-            reply.send(err)
-            return
-        }
+    queue.push({ p, collection }, function (err, result) {
         reply.send(result)
+    })
+})
+
+fastify.post(`/${productsCollection}`, function (req, reply) {
+    const p = getProduct();
+    const collection = this.mongo.db.collection(productsCollection)
+    collection.insertOne(p, (err, result) => {
+        reply.send(result);
     })
 })
 
 fastify.get(`/${productsCollection}`, function (req, reply) {
     const collection = this.mongo.db.collection(productsCollection)
-    collection.find({}, {}).toArray((err, result) => {
-        if (err) {
-            reply.send(err)
-            return
-        }
+    // collection.find({}, {}).limit(100).toArray((err, result) => {
+    //     if (err) {
+    //         reply.send(err)
+    //         return
+    //     }
+    //     reply.send(result)
+    // })
+    queue.push({ collection }, function (err, result) {
         reply.send(result)
     })
 });
@@ -74,7 +108,12 @@ fastify.get(`/${productsCollection}/:id`, function (req, reply) {
 });
 
 fastify.get('/', function (req, reply) {
-    reply.send({ "success": true });
+    reply.send({ "success": true, time: new Date() });
+    // queue.push({ "success": true, time: new Date() }, function (err, result) {
+    //     if (err) { reply.send(err) }
+    //     console.log('the result is', result)
+    //     reply.send(result)
+    // })
 })
 
 fastify.listen(3000, err => {

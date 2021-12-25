@@ -1,4 +1,17 @@
 var faker = require('faker');
+const axios = require('axios').default;
+
+// axios.post('https://httpbin.org/post', {
+//     firstName: 'Fred',
+//     lastName: 'Flintstone'
+// })
+//     .then(function (response) {
+//         console.log(response.data);
+//     })
+//     .catch(function (error) {
+//         console.log(error);
+//     });
+// const data = await response.json();
 
 // for (let index = 0; index < 50; index++) {
 //     const element = 50;
@@ -24,12 +37,18 @@ var faker = require('faker');
 // var unique_array2 = [...new Set(names2)];
 // console.log(unique_array2.length);
 
+const getFake = () => {
+    return faker.fake("{{commerce.productName}}-{{datatype.uuid}}");
+    // return faker.commerce.productName();
+}
+
 const getProduct = () => {
     return {
-        name: faker.unique(faker.commerce.productName),
+        name: faker.unique(getFake),
         price: faker.commerce.price(),
         description: faker.commerce.productDescription(),
         image: faker.image.image,
+        createdAt: faker.date.past(),
     }
 }
 
@@ -40,8 +59,29 @@ const getProducts = (number) => {
     }
     return products;
 }
-
-const names = [];
-getProducts(1000).map(product => names.push(product.name));
-var unique_array = [...new Set(names)];
-console.log(unique_array.length, names);
+const start = new Date();
+console.log(start);
+// const products = getProducts(1000);
+// console.log(new Date() - start, products.length);
+// products.map(product => {
+//     console.log(product.name);
+//     axios.post('http://localhost:3000/products', product)
+//         .then(function (response) {
+//             console.log(response.data, start, new Date() - start);
+//         })
+//         .catch(function (error) {
+//             console.log(error);
+//         });
+// });
+console.log('starting cannon', start);
+for (let index = 0; index < 100; index++) {
+    axios.get('http://localhost:3000/products',{})
+    .then(function (response) {
+        console.log(response.data, index, new Date() - start);
+    })
+    .catch(function (error) {
+        console.log(error);
+    });
+    
+}
+// console.log('ending cannon', new Date() - start);
