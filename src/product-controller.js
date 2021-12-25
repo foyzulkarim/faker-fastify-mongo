@@ -7,35 +7,6 @@ fastify.register(require('fastify-mongodb'), {
     url: 'mongodb://127.0.0.1:27017/mydb'
 })
 
-const usersCollection = 'users'
-
-fastify.get('/users/:id', function (req, reply) {
-    const users = this.mongo.db.collection(usersCollection)
-    const id = this.mongo.ObjectId(req.params.id)
-    console.log(id);
-    let x = users.find({}, {}).toArray().then((err, user) => {
-        if (err) {
-            console.log(err);
-            reply.send(err)
-            return
-        }
-        console.log('user ', user);
-        reply.send(user)
-    });
-    console.log('hello\t', x);
-})
-
-fastify.post('/users', function (req, reply) {
-    const users = this.mongo.db.collection(usersCollection)
-    users.insert(req.body, (err, result) => {
-        if (err) {
-            reply.send(err)
-            return
-        }
-        reply.send(result)
-    })
-})
-
 const productsCollection = 'products'
 
 fastify.post(`/${productsCollection}`, function (req, reply) {
@@ -72,12 +43,3 @@ fastify.get(`/${productsCollection}/:id`, function (req, reply) {
         reply.send(result)
     })
 });
-
-fastify.get('/', function (req, reply) {
-    reply.send({ "success": true });
-})
-
-fastify.listen(3000, err => {
-    if (err) throw err
-    console.log('fastify is up and running in port 3000');
-})
