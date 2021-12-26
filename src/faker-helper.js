@@ -74,7 +74,7 @@ console.log(start);
 //         });
 // });
 console.log('starting cannon', start);
-for (let index = 0; index < 100; index++) {
+for (let index = 0; index < 10; index++) {
     axios.get('http://localhost:3000/products',{})
     .then(function (response) {
         console.log(response.data, index, new Date() - start);

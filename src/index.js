@@ -3,11 +3,11 @@ const queue = require('fastq')(worker, 6)
 var faker = require('faker');
 
 fastify.register(require('fastify-mongodb'), {
-    // force to close the mongodb connection when app stopped
-    // the default value is false
     forceClose: true,
     url: 'mongodb://127.0.0.1:27017/mydb'
 })
+
+fastify.register(require('fastify-axios'))
 
 const usersCollection = 'users'
 
@@ -59,8 +59,17 @@ function worker(arg, cb) {
     // arg.collection.insertOne(arg.p, (err, result) => {
     //     cb(null, result)
     // })    
+    // arg.collection.find({}, {}).limit(100).toArray((err, result) => {
+    //     cb(null, result);
+    // })
     arg.collection.find({}, {}).limit(100).toArray((err, result) => {
-        cb(null, result);
+        if (err) {
+            cb(err)
+            return
+        }
+        fastify.axios.get('http://localhost:3001').then((response) => {
+            cb(null, { status : response.status, result });
+        })
     })
 }
 
@@ -82,16 +91,19 @@ fastify.post(`/${productsCollection}`, function (req, reply) {
 
 fastify.get(`/${productsCollection}`, function (req, reply) {
     const collection = this.mongo.db.collection(productsCollection)
-    // collection.find({}, {}).limit(100).toArray((err, result) => {
-    //     if (err) {
-    //         reply.send(err)
-    //         return
-    //     }
-    //     reply.send(result)
-    // })
-    queue.push({ collection }, function (err, result) {
-        reply.send(result)
+    collection.find({}, {}).limit(100).toArray((err, result) => {
+        if (err) {
+            reply.send(err)
+            return
+        }
+        fastify.axios.get('http://localhost:3001').then((response) => {
+            reply.send({ status: response.status, result })
+        })
+        // reply.send(result)
     })
+    // queue.push({ collection }, function (err, r) {
+    //     reply.send(r)
+    // });
 });
 
 fastify.get(`/${productsCollection}/:id`, function (req, reply) {
@@ -109,11 +121,6 @@ fastify.get(`/${productsCollection}/:id`, function (req, reply) {
 
 fastify.get('/', function (req, reply) {
     reply.send({ "success": true, time: new Date() });
-    // queue.push({ "success": true, time: new Date() }, function (err, result) {
-    //     if (err) { reply.send(err) }
-    //     console.log('the result is', result)
-    //     reply.send(result)
-    // })
 })
 
 fastify.listen(3000, err => {
