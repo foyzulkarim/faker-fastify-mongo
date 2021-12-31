@@ -1,92 +1,43 @@
 const fastify = require('fastify')()
-const queue = require('fastq')(worker, 6)
 var faker = require('faker');
 
 fastify.register(require('fastify-mongodb'), {
     forceClose: true,
-    url: 'mongodb://127.0.0.1:27017/mydb'
+    url: 'mongodb://192.168.122.86:27017/appdb'
 })
 
 fastify.register(require('fastify-axios'))
 
-const usersCollection = 'users'
-
-fastify.get('/users/:id', function (req, reply) {
-    const users = this.mongo.db.collection(usersCollection)
-    const id = this.mongo.ObjectId(req.params.id)
-    console.log(id);
-    let x = users.find({}, {}).toArray().then((err, user) => {
-        if (err) {
-            console.log(err);
-            reply.send(err)
-            return
-        }
-        console.log('user ', user);
-        reply.send(user)
-    });
-    console.log('hello\t', x);
-})
-
-fastify.post('/users', function (req, reply) {
-    const users = this.mongo.db.collection(usersCollection)
-    users.insert(req.body, (err, result) => {
-        if (err) {
-            reply.send(err)
-            return
-        }
-        reply.send(result)
-    })
-})
-
 const getFake = () => {
-    return faker.fake("{{commerce.productName}}-{{datatype.uuid}}");
+    return faker.fake("{{commerce.productName}} {{datatype.uuid}}");
 }
 
 const getProduct = () => {
     return {
         name: faker.unique(getFake),
         price: faker.commerce.price(),
+        product: faker.commerce.product(),
         description: faker.commerce.productDescription(),
         image: faker.image.image,
+        company: faker.company.companyName(),
+        country: faker.address.country(),
         createdAt: faker.date.past(),
     }
 }
 
 const productsCollection = 'products'
 
-function worker(arg, cb) {
-    // const collection = this.mongo.db.collection(productsCollection)
-    // arg.collection.insertOne(arg.p, (err, result) => {
-    //     cb(null, result)
-    // })    
-    // arg.collection.find({}, {}).limit(100).toArray((err, result) => {
-    //     cb(null, result);
-    // })
-    arg.collection.find({}, {}).limit(100).toArray((err, result) => {
-        if (err) {
-            cb(err)
-            return
-        }
-        fastify.axios.get('http://localhost:3001').then((response) => {
-            cb(null, { status : response.status, result });
-        })
-    })
-}
-
-fastify.post(`/q/${productsCollection}`, function (req, reply) {
-    const p = getProduct();
-    const collection = this.mongo.db.collection(productsCollection)
-    queue.push({ p, collection }, function (err, result) {
-        reply.send(result)
-    })
-})
-
 fastify.post(`/${productsCollection}`, function (req, reply) {
     const p = getProduct();
     const collection = this.mongo.db.collection(productsCollection)
     collection.insertOne(p, (err, result) => {
-        reply.send(result);
-    })
+        if (err) {
+            console.log(err);
+            reply.send(err)
+        } else {
+            reply.send(result)
+        }
+    });
 })
 
 fastify.get(`/${productsCollection}`, function (req, reply) {
@@ -96,14 +47,9 @@ fastify.get(`/${productsCollection}`, function (req, reply) {
             reply.send(err)
             return
         }
-        fastify.axios.get('http://localhost:3001').then((response) => {
-            reply.send({ status: response.status, result })
-        })
-        // reply.send(result)
+
+        reply.send(result)
     })
-    // queue.push({ collection }, function (err, r) {
-    //     reply.send(r)
-    // });
 });
 
 fastify.get(`/${productsCollection}/:id`, function (req, reply) {
