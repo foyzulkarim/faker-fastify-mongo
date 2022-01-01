@@ -1,6 +1,6 @@
 const autocannon = require('autocannon')
 
-const url =  'http://localhost:3000'
+const url =  'http://192.168.122.162'
 
 const options = {
     url,
