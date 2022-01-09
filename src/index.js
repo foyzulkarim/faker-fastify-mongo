@@ -3,7 +3,7 @@ var faker = require('faker');
 
 fastify.register(require('fastify-mongodb'), {
     forceClose: true,
-    url: 'mongodb://192.168.122.86:27017/appdb'
+    url: 'mongodb://192.168.122.86:27017/botsappdb'
 })
 
 // products endpoint
@@ -25,10 +25,25 @@ const getFakeProduct = () => {
     }
 }
 
+const getFakeProduct2 = () => {
+    return {
+        name: faker.unique(getFakeUniqueProductName),
+        sku: faker.helpers.slugify(faker.fake("{{commerce.productName}}")),
+        cost: parseInt(faker.commerce.price()),
+        price: parseFloat(faker.commerce.price()),
+        description: faker.commerce.productDescription(),
+        manufacturingDate: faker.date.past(),
+        expiryDate: faker.date.future(),
+        size: faker.helpers.randomize([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.soon(),
+    }
+}
+
 const productsCollection = 'products'
 
 fastify.post(`/${productsCollection}`, function (req, reply) {
-    const p = getFakeProduct();
+    const p = getFakeProduct2();
     const collection = this.mongo.db.collection(productsCollection)
     collection.insertOne(p, (err, result) => {
         if (err) {

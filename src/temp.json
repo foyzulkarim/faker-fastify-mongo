@@ -1,0 +1,24 @@
+{
+    "_id": {
+        "$oid": "61d3d09332c1d9a346690cd3"
+    },
+    "productName": "phone",
+    "sku": "phone",
+    "description": "phone",
+    "manufacturingDate": {
+        "$date": "2022-01-04T00:00:00.000Z"
+    },
+    "cost": 10,
+    "price": 15,
+    "size": 1,
+    "createdAt": {
+        "$date": "2022-01-04T04:44:03.751Z"
+    },
+    "updatedAt": {
+        "$date": "2022-01-04T04:44:03.751Z"
+    },
+    "expiryDate": {
+        "$date": "2022-01-04T04:44:03.000Z"
+    },
+    "__v": 0
+}

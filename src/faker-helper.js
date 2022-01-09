@@ -52,6 +52,23 @@ const getProduct = () => {
     }
 }
 
+const getFakeUniqueProductName = () => {
+    return faker.fake("{{commerce.productName}} {{datatype.uuid}}");
+}
+
+const getFakeProduct2 = () => {
+    return {
+        name: faker.unique(getFakeUniqueProductName),
+        sku: faker.helpers.slugify(faker.fake("{{commerce.productName}}")),
+        cost: faker.commerce.price(),
+        price: faker.commerce.price(),
+        description: faker.commerce.productDescription(),
+        manufacturingDate: faker.date.past(),
+        expiryDate: faker.date.future(),
+        size: faker.helpers.randomize([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    }
+}
+
 const getProducts = (number) => {
     let products = [];
     for (let index = 0; index < number; index++) {
@@ -73,15 +90,17 @@ console.log(start);
 //             console.log(error);
 //         });
 // });
-console.log('starting cannon', start);
-for (let index = 0; index < 10; index++) {
-    axios.get('http://localhost:3000/products',{})
-    .then(function (response) {
-        console.log(response.data, index, new Date() - start);
-    })
-    .catch(function (error) {
-        console.log(error);
-    });
-    
+console.log('starting my cannon', start);
+for (let index = 0; index < 1; index++) {
+    // const product = getFakeProduct2();
+    // console.log('product', product);
+    axios.post('http://localhost:3000/products', {})
+        .then(function (response) {
+            console.log(response.data, index, new Date() - start);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+
 }
 // console.log('ending cannon', new Date() - start);

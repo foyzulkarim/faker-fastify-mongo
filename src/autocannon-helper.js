@@ -1,6 +1,7 @@
 const autocannon = require('autocannon')
 
-const url = 'http://192.168.122.162'
+// const url = 'http://192.168.122.162'
+const url = 'http://localhost:3000'
 
 const productEntryOptions = {
     url,
@@ -15,13 +16,13 @@ const productEntryOptions = {
             //     console.log(status, 'products', body);
             // }
         },
-        {
-            method: 'POST',
-            path: '/customers',
-            // onResponse: (status, body, context) => {
-            //     console.log(status, 'customers', body);
-            // }
-        }
+        // {
+        //     method: 'POST',
+        //     path: '/customers',
+        //     // onResponse: (status, body, context) => {
+        //     //     console.log(status, 'customers', body);
+        //     // }
+        // }
     ]
 }
 
